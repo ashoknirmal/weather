@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Clone') {
             steps {
-                git 'https://github.com/ashoknirmal/weather.git'
+                git branch: 'main', url: 'https://github.com/ashoknirmal/weather.git'
             }
         }
         stage('Install Dependencies') {
