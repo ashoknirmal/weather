@@ -18,6 +18,7 @@ pipeline {
         }
         stage('Build') {
             steps {
+                sh 'mkdir -p /.npm && chown -R 122:125 /.npm'
                 sh 'npm run build'
             }
         }
