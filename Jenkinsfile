@@ -13,12 +13,12 @@ pipeline {
         }
         stage('Install Dependencies') {
             steps {
+                sh 'mkdir -p /.npm && chown -R 122:125 /.npm'
                 sh 'npm install'
             }
         }
         stage('Build') {
             steps {
-                sh 'mkdir -p /.npm && chown -R 122:125 /.npm'
                 sh 'npm run build'
             }
         }
