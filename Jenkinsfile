@@ -6,9 +6,14 @@ pipeline {
         NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
     }
 
+    options {
+        skipDefaultCheckout() // Skip default checkout
+    }
+
     stages {
         stage('Clone') {
             steps {
+                deleteDir() // Clean workspace first
                 git branch: 'main', url: 'https://github.com/ashoknirmal/weather.git'
             }
         }
@@ -17,10 +22,16 @@ pipeline {
             steps {
                 sh '''
                     export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # ✅ fixed here
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # Load NVM
                     nvm install 22.15.0
                     nvm use 22.15.0
-                    npm install
+
+                    # Clean up corrupted installs
+                    rm -rf node_modules package-lock.json
+                    npm cache clean --force
+
+                    # Install dependencies with legacy-peer-deps flag
+                    npm install --legacy-peer-deps
                 '''
             }
         }
@@ -29,7 +40,7 @@ pipeline {
             steps {
                 sh '''
                     export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # ✅ fixed here
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # Load NVM
                     nvm use 22.15.0
                     node -v
                     npm -v
@@ -41,7 +52,7 @@ pipeline {
             steps {
                 sh '''
                     export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # ✅ fixed here
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # Load NVM
                     nvm use 22.15.0
                     npm run build
                 '''
@@ -72,6 +83,12 @@ pipeline {
                     docker run -d -p 80:80 --name react-weather $DOCKER_IMAGE
                 '''
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs() // Clean workspace after the pipeline completes
         }
     }
 }
