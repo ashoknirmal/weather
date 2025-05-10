@@ -16,18 +16,18 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-            steps {
-                sh '''
-                    export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-                    nvm install 22.15.0
-                    nvm use 22.15.0
-                    node -v
-                    npm -v
-                    npm install
-                '''
-            }
-        }
+    steps {
+        sh '''
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # Fixed: removed backslash
+            nvm install 22.15.0
+            nvm use 22.15.0
+            node -v
+            npm -v
+            npm install
+        '''
+    }
+}
 
         stage('Build') {
             steps {
