@@ -4,6 +4,8 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'ashok3182004/react-weather-app'
         NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
+        NVM_DIR = "$HOME/.nvm"
+        PATH = "$NVM_DIR/versions/node/v22.15.0/bin:$PATH"
     }
 
     stages {
@@ -15,14 +17,26 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'mkdir -p .npm'
-                sh 'npm install'
+                sh '''
+                    export NVM_DIR="$HOME/.nvm"
+                    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                    nvm install 22.15.0
+                    nvm use 22.15.0
+                    node -v
+                    npm -v
+                    npm install
+                '''
             }
         }
 
         stage('Build') {
             steps {
-                sh 'npm run build'
+                sh '''
+                    export NVM_DIR="$HOME/.nvm"
+                    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                    nvm use 22.15.0
+                    npm run build
+                '''
             }
         }
 
