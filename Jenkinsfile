@@ -4,8 +4,6 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'ashok3182004/react-weather-app'
         NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
-        NVM_DIR = "$HOME/.nvm"
-        PATH = "$NVM_DIR/versions/node/v22.15.0/bin:$PATH"
     }
 
     stages {
@@ -16,24 +14,34 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-    steps {
-        sh '''
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # Fixed: removed backslash
-            nvm install 22.15.0
-            nvm use 22.15.0
-            node -v
-            npm -v
-            npm install
-        '''
-    }
-}
+            steps {
+                sh '''
+                    export NVM_DIR="$HOME/.nvm"
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # ✅ fixed here
+                    nvm install 22.15.0
+                    nvm use 22.15.0
+                    npm install
+                '''
+            }
+        }
+
+        stage('Verify Node and NPM') {
+            steps {
+                sh '''
+                    export NVM_DIR="$HOME/.nvm"
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # ✅ fixed here
+                    nvm use 22.15.0
+                    node -v
+                    npm -v
+                '''
+            }
+        }
 
         stage('Build') {
             steps {
                 sh '''
                     export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # ✅ fixed here
                     nvm use 22.15.0
                     npm run build
                 '''
@@ -49,16 +57,20 @@ pipeline {
         stage('Docker Login & Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
-                    sh 'docker push $DOCKER_IMAGE'
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push $DOCKER_IMAGE
+                    '''
                 }
             }
         }
 
         stage('Docker Run') {
             steps {
-                sh 'docker rm -f react-weather || true'
-                sh 'docker run -d -p 80:80 --name react-weather $DOCKER_IMAGE'
+                sh '''
+                    docker rm -f react-weather || true
+                    docker run -d -p 80:80 --name react-weather $DOCKER_IMAGE
+                '''
             }
         }
     }
